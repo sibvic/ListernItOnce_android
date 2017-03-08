@@ -95,6 +95,7 @@ public class Player implements MediaPlayer.OnCompletionListener {
 
     @Override
     public void onCompletion(MediaPlayer mp) {
+        //TODO: test
         if (mediaFile != null) {
             Log.d("lio", String.format("%1$s stopped", mediaFile.getFileName()));
             listener.onStopped(mediaFile);

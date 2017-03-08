@@ -3,6 +3,7 @@ package com.sibvic.listernitonce.Player;
 import android.media.MediaPlayer;
 
 import com.sibvic.listernitonce.Media.FileFactory;
+import com.sibvic.listernitonce.Media.FileInformationWriter;
 import com.sibvic.listernitonce.Media.MediaFile;
 
 import java.util.TimerTask;
@@ -36,7 +37,7 @@ public class UpdatePlaybackPositionTimerTask extends TimerTask {
             tickCounter++;
             if (tickCounter == 10) {
                 tickCounter = 0;
-                FileFactory.saveInformation(currentFile);
+                FileInformationWriter.saveInformation(currentFile);
             }
         }
     }

@@ -44,32 +44,8 @@ public class FileFactory {
 
     @NonNull
     public static MediaFile getMediaFile(File file) {
-        long position = readPosition(file);
-        long lengthInSeconds = readLength(file);
+        long position = FileInformationReader.readPosition(file);
+        long lengthInSeconds = FileInformationReader.readLength(file);
         return new MediaFile(file, lengthInSeconds, position);
-    }
-
-    private static long readLength(File file) {
-        //TODO: implement
-        return 0;
-    }
-
-    private static long readPosition(File file) {
-        File infoFile = getInformationFile(file);
-        if (!infoFile.exists() || infoFile.isDirectory()) {
-            return 0;
-        }
-        //TODO: read data
-        return 0;
-    }
-
-    @NonNull
-    private static File getInformationFile(File file) {
-        return new File(file.getAbsolutePath() + ".info");
-    }
-
-    public static void saveInformation(MediaFile currentFile) {
-        File infoFile = getInformationFile(currentFile.getFile());
-        //TODO: save
     }
 }
