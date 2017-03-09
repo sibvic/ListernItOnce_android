@@ -1,0 +1,15 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <EditTextPreference
+        android:key="target_path"
+        android:summary="Path to the folder with files to play"
+        android:title="Path to files"
+        />
+
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="delete_after_play"
+        android:summary="Whether to delete files after play"
+        android:title="Delete after play"
+        />
+
+</PreferenceScreen>

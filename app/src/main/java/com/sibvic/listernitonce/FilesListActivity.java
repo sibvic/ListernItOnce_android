@@ -2,8 +2,10 @@ package com.sibvic.listernitonce;
 
 import android.app.ListActivity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
@@ -12,8 +14,6 @@ import android.widget.TextView;
 
 import com.sibvic.listernitonce.Media.FileFactory;
 import com.sibvic.listernitonce.Media.MediaFile;
-import com.sibvic.listernitonce.Options.Options;
-import com.sibvic.listernitonce.Options.OptionsManager;
 import com.sibvic.listernitonce.Player.Player;
 import com.sibvic.listernitonce.Player.PlayerCallback;
 
@@ -24,14 +24,12 @@ public class FilesListActivity extends ListActivity implements PlayerCallback {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        options = OptionsManager.create(this);
         setContentView(R.layout.activity_files_list);
         refreshFiles();
         player = new Player(this);
         handler.postDelayed(updateTimeTask, 1000);
-        if (options.getTargetFolder() == null || options.getTargetFolder().equals("")) {
-            handler.postDelayed(showOptionsTask, 100);
-        }
+
+        handlePreferences();
 
         ImageButton playPauseButton = (ImageButton)findViewById(R.id.play_pause);
         playPauseButton.setOnClickListener( new View.OnClickListener() {
@@ -46,7 +44,26 @@ public class FilesListActivity extends ListActivity implements PlayerCallback {
             }
         });
     }
-    Options options;
+
+    private void handlePreferences() {
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        String target_folder = settings.getString("target_path", "");
+        if (target_folder.equals("")) {
+            handler.postDelayed(showOptionsTask, 100);
+        }
+
+        settings.registerOnSharedPreferenceChangeListener(
+                new SharedPreferences.OnSharedPreferenceChangeListener() {
+                @Override
+                public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
+                                                      String key) {
+                    if (key.equals("target_path")) {
+                        refreshFiles();
+                    }
+                }
+            });
+    }
+
     FileListAdapter adapter;
     Player player;
     ArrayList<MediaFile> listItems;
@@ -76,7 +93,7 @@ public class FilesListActivity extends ListActivity implements PlayerCallback {
     };
 
     private void showOptions() {
-        Intent intent = new Intent(this, null);//SettingsActivity.class);
+        Intent intent = new Intent(this, SettingsActivity.class);
         startActivity(intent);
     }
 
@@ -88,8 +105,11 @@ public class FilesListActivity extends ListActivity implements PlayerCallback {
 
     private void refreshFiles() {
         listItems = new ArrayList<>();
-        if (options.getTargetFolder() != null && !options.getTargetFolder().equals("")) {
-            File directory = new File(options.getTargetFolder());
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String target_folder = preferences.getString("target_path", "");
+        if (!target_folder.equals("")) {
+            File directory = new File(target_folder);
             FileFactory.addFilesFromFolder(listItems, directory);
         }
         adapter = new FileListAdapter(this, listItems);
@@ -138,7 +158,10 @@ public class FilesListActivity extends ListActivity implements PlayerCallback {
         ImageButton playPauseButton = (ImageButton)findViewById(R.id.play_pause);
         playPauseButton.setEnabled(false);
         if (file.getLength() > 0 && file.getCurrentPosition() >= file.getLength()) {
-            deleteFile(file);
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+            if (preferences.getBoolean("delete_after_play", false)) {
+                deleteFile(file);
+            }
             int indexOfFile = listItems.indexOf(file);
             if (indexOfFile != -1) {
                 listItems.remove(indexOfFile);
