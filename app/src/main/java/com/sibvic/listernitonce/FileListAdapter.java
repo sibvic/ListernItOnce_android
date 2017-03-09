@@ -57,9 +57,9 @@ class FileListAdapter extends ArrayAdapter<MediaFile> {
 
     private String formatTimeLength(long timeInSeconds) {
         int seconds = (int)timeInSeconds % 60;
-        int timeInMunutes = (int)timeInSeconds / 60;
-        int minutes = timeInMunutes % 60;
-        int hours = timeInMunutes / 60;
+        int timeInMinutes = (int)timeInSeconds / 60;
+        int minutes = timeInMinutes % 60;
+        int hours = timeInMinutes / 60;
         return String.format(Locale.getDefault(), "%1$d:%2$02d:%3$02d", hours, minutes, seconds);
     }
 }
