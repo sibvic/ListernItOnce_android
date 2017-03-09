@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import com.sibvic.listernitonce.Media.MediaFile;
 
+import java.util.ArrayList;
 import java.util.Locale;
 
 /**
@@ -17,9 +18,9 @@ import java.util.Locale;
  */
 class FileListAdapter extends ArrayAdapter<MediaFile> {
     private final Context context;
-    private final MediaFile[] values;
+    private final ArrayList<MediaFile> values;
 
-    FileListAdapter(Context context, MediaFile[] values) {
+    FileListAdapter(Context context, ArrayList<MediaFile> values) {
         super(context, R.layout.row_layout, values);
         this.context = context;
         this.values = values;
@@ -32,7 +33,7 @@ class FileListAdapter extends ArrayAdapter<MediaFile> {
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View rowView = inflater.inflate(R.layout.row_layout, parent, false);
         TextView textView = (TextView) rowView.findViewById(R.id.label);
-        MediaFile mediaFile = values[position];
+        MediaFile mediaFile = values.get(position);
         long length = mediaFile.getLength();
         if (length > 0) {
             //TODO: test

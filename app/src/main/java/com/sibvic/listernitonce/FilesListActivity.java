@@ -39,6 +39,7 @@ public class FilesListActivity extends ListActivity implements PlayerCallback {
     }
     FileListAdapter adapter;
     Player player;
+    ArrayList<MediaFile> listItems;
 
     @Override
     protected void onDestroy() {
@@ -48,22 +49,25 @@ public class FilesListActivity extends ListActivity implements PlayerCallback {
 
     private void refreshFiles() {
         File directory = new File(Environment.getExternalStorageDirectory().toString() + "/Music");
-        ArrayList<MediaFile> listItems = new ArrayList<>();
+        listItems = new ArrayList<>();
         FileFactory.addFilesFromFolder(listItems, directory);
-
-        MediaFile[] mediaFiles = listItems.toArray(new MediaFile[listItems.size()]);
-        adapter = new FileListAdapter(this, mediaFiles);
+        adapter = new FileListAdapter(this, listItems);
         adapter.notifyDataSetChanged();
         setListAdapter(adapter);
     }
 
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
+        super.onListItemClick(l, v, position, id);
+        MediaFile fileToPlay = adapter.getItem(position);
+        playFile(fileToPlay);
+    }
+
+    private void playFile(MediaFile fileToPlay) {
         if (player.isPlaying()) {
             player.stop();
         }
-        super.onListItemClick(l, v, position, id);
-        player.play(adapter.getItem(position));
+        player.play(fileToPlay);
     }
 
     @Override
@@ -93,7 +97,16 @@ public class FilesListActivity extends ListActivity implements PlayerCallback {
         ImageButton playPauseButton = (ImageButton)findViewById(R.id.play_pause);
         playPauseButton.setEnabled(false);
         if (file.getLength() > 0 && file.getCurrentPosition() >= file.getLength()) {
-            //TODO: delete finished media file, remove from the list and play the next on
+            //TODO: test
+            boolean deleted = file.getFile().delete();
+            int indexOfFile = listItems.indexOf(file);
+            if (indexOfFile != -1) {
+                listItems.remove(indexOfFile);
+                if (indexOfFile < listItems.size()) {
+                    MediaFile fileToPlay = listItems.get(indexOfFile);
+                    playFile(fileToPlay);
+                }
+            }
         }
     }
 }
