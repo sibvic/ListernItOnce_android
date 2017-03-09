@@ -43,17 +43,20 @@ class FileListAdapter extends ArrayAdapter<MediaFile> {
         if (length > 0) {
             long currentPosition = mediaFile.getCurrentPosition();
             int progress = (int) ((currentPosition * 100.0) / length);
-            textView.setText(String.format(Locale.getDefault(), "%1$s (%2$d%%, %3$s)", mediaFile.getFileName(),
-                    progress, formatTime(length)));
+            textView.setText(String.format(Locale.getDefault(), "%1$s (%4$s/%3$s, %2$d%%)", mediaFile.getFileName(),
+                    progress, formatTimeLength(length), formatTimeLength(currentPosition)));
         }
         else {
-            textView.setText(String.format(Locale.getDefault(), "%1$s (%2$d)", mediaFile.getFileName(),
-                    mediaFile.getCurrentPosition()));
+            textView.setText(String.format(Locale.getDefault(), "%1$s (%2$s)", mediaFile.getFileName(),
+                    formatTimeLength(mediaFile.getCurrentPosition())));
         }
     }
 
-    private String formatTime(long timeInSeconds) {
-        //TODO: format in hh:mm:ss format
-        return Long.toString(timeInSeconds);
+    private String formatTimeLength(long timeInSeconds) {
+        int seconds = (int)timeInSeconds % 60;
+        int timeInMunutes = (int)timeInSeconds / 60;
+        int minutes = timeInMunutes % 60;
+        int hours = timeInMunutes / 60;
+        return String.format(Locale.getDefault(), "%1$d:%2$02d:%3$02d", hours, minutes, seconds);
     }
 }
