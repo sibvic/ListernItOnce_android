@@ -32,11 +32,15 @@ class FileListAdapter extends ArrayAdapter<MediaFile> {
         LayoutInflater inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View rowView = inflater.inflate(R.layout.row_layout, parent, false);
+        updateRow(position, rowView);
+        return rowView;
+    }
+
+    void updateRow(int position, View rowView) {
         TextView textView = (TextView) rowView.findViewById(R.id.label);
         MediaFile mediaFile = values.get(position);
         long length = mediaFile.getLength();
         if (length > 0) {
-            //TODO: test
             long currentPosition = mediaFile.getCurrentPosition();
             int progress = (int) ((currentPosition * 100.0) / length);
             textView.setText(String.format(Locale.getDefault(), "%1$s (%2$d%%, %3$s)", mediaFile.getFileName(),
@@ -46,7 +50,6 @@ class FileListAdapter extends ArrayAdapter<MediaFile> {
             textView.setText(String.format(Locale.getDefault(), "%1$s (%2$d)", mediaFile.getFileName(),
                     mediaFile.getCurrentPosition()));
         }
-        return rowView;
     }
 
     private String formatTime(long timeInSeconds) {

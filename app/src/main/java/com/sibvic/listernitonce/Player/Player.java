@@ -114,4 +114,8 @@ public class Player implements MediaPlayer.OnCompletionListener {
             }
         }
     }
+
+    public MediaFile getMediaFile() {
+        return mediaFile;
+    }
 }

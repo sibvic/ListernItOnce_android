@@ -3,6 +3,7 @@ package com.sibvic.listernitonce;
 import android.app.ListActivity;
 import android.os.Environment;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -23,6 +24,7 @@ public class FilesListActivity extends ListActivity implements PlayerCallback {
         setContentView(R.layout.activity_files_list);
         refreshFiles();
         player = new Player(this);
+        handler.postDelayed(updateTimeTask, 1000);
 
         ImageButton playPauseButton = (ImageButton)findViewById(R.id.play_pause);
         playPauseButton.setOnClickListener( new View.OnClickListener() {
@@ -40,6 +42,25 @@ public class FilesListActivity extends ListActivity implements PlayerCallback {
     FileListAdapter adapter;
     Player player;
     ArrayList<MediaFile> listItems;
+    private Handler handler = new Handler();
+    private Runnable updateTimeTask = new Runnable() {
+        public void run() {
+            handler.postDelayed(this, 1000);
+            MediaFile currentFile = player.getMediaFile();
+            if (currentFile == null) {
+                return;
+            }
+            int indexOfFile = listItems.indexOf(currentFile);
+            if (indexOfFile != -1) {
+                ListView listView = (ListView)findViewById(android.R.id.list);
+                View v = listView.getChildAt(indexOfFile - listView.getFirstVisiblePosition());
+                if(v != null) {
+                    adapter.updateRow(indexOfFile, v);
+                }
+
+            }
+        }
+    };
 
     @Override
     protected void onDestroy() {
