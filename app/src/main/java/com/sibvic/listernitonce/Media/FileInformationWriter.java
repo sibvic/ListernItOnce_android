@@ -11,13 +11,8 @@ import java.io.PrintWriter;
  */
 public class FileInformationWriter {
 
-    @NonNull
-    private static File getInformationFile(File file) {
-        return new File(file.getAbsolutePath() + ".info");
-    }
-
     public static void saveInformation(MediaFile currentFile) {
-        File infoFile = getInformationFile(currentFile.getFile());
+        File infoFile = currentFile.getMetaInformationFile();
         try {
             PrintWriter out = new PrintWriter(infoFile);
             out.println(Long.toString(currentFile.getCurrentPosition()));

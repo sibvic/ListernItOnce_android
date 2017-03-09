@@ -61,8 +61,6 @@ public class FileFactory {
 
     @NonNull
     private static MediaFile getMediaFile(File file) {
-        long position = FileInformationReader.readPosition(file);
-        long lengthInSeconds = FileInformationReader.readLength(file);
-        return new MediaFile(file, lengthInSeconds, position);
+        return new MediaFile(file);
     }
 }

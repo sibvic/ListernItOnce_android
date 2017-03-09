@@ -4,12 +4,14 @@ import android.app.ListActivity;
 import android.os.Environment;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.sibvic.listernitonce.Media.FileFactory;
+import com.sibvic.listernitonce.Media.FileInformationWriter;
 import com.sibvic.listernitonce.Media.MediaFile;
 import com.sibvic.listernitonce.Player.Player;
 import com.sibvic.listernitonce.Player.PlayerCallback;
@@ -98,7 +100,7 @@ public class FilesListActivity extends ListActivity implements PlayerCallback {
         playPauseButton.setImageResource(android.R.drawable.ic_media_pause);
 
         TextView currentFileName = (TextView)findViewById(R.id.current_file_name);
-        currentFileName.setText(file.getFileName());
+        currentFileName.setText(file.getTitle());
     }
 
     @Override
@@ -118,8 +120,7 @@ public class FilesListActivity extends ListActivity implements PlayerCallback {
         ImageButton playPauseButton = (ImageButton)findViewById(R.id.play_pause);
         playPauseButton.setEnabled(false);
         if (file.getLength() > 0 && file.getCurrentPosition() >= file.getLength()) {
-            //TODO: test
-            boolean deleted = file.getFile().delete();
+            deleteFile(file);
             int indexOfFile = listItems.indexOf(file);
             if (indexOfFile != -1) {
                 listItems.remove(indexOfFile);
@@ -128,6 +129,17 @@ public class FilesListActivity extends ListActivity implements PlayerCallback {
                     playFile(fileToPlay);
                 }
             }
+            adapter.notifyDataSetChanged();
+        }
+    }
+
+    private void deleteFile(MediaFile file) {
+        if (!file.getFile().delete()) {
+            Log.d("lio", String.format("Failed to delete %1$s", file.getTitle()));
+        }
+        if (!file.getMetaInformationFile().delete()) {
+            Log.d("lio", String.format("Failed to delete %1$s meta information",
+                    file.getTitle()));
         }
     }
 }

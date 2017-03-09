@@ -44,12 +44,11 @@ public class Player implements MediaPlayer.OnCompletionListener {
             return;
         }
         setMediaFile(mediaFile);
-        Log.d("lio", String.format("starting %1$s", mediaFile.getFileName()));
+        Log.d("lio", String.format("starting %1$s", mediaFile.getTitle()));
         mediaPlayer.start();
         if (mediaFile.getCurrentPosition() > 0) {
             mediaPlayer.seekTo((int)mediaFile.getCurrentPosition() * 1000);
         }
-        this.mediaFile.setLength(mediaPlayer.getDuration() / 1000);
         listener.onStarted(mediaFile);
     }
 
@@ -60,7 +59,7 @@ public class Player implements MediaPlayer.OnCompletionListener {
 
     public void pause() {
         if (mediaPlayer.isPlaying()) {
-            Log.d("lio", String.format("pausing %1$s", mediaFile.getFileName()));
+            Log.d("lio", String.format("pausing %1$s", mediaFile.getTitle()));
             mediaPlayer.pause();
             listener.onPaused(mediaFile);
         }
@@ -68,7 +67,7 @@ public class Player implements MediaPlayer.OnCompletionListener {
 
     public void resume() {
         if (!mediaPlayer.isPlaying() && mediaFile != null) {
-            Log.d("lio", String.format("resuming %1$s", mediaFile.getFileName()));
+            Log.d("lio", String.format("resuming %1$s", mediaFile.getTitle()));
             mediaPlayer.start();
             listener.onResumed(mediaFile);
         }
@@ -83,20 +82,22 @@ public class Player implements MediaPlayer.OnCompletionListener {
 
     public void stop() {
         if (mediaFile != null) {
-            Log.d("lio", String.format("stopping %1$s", mediaFile.getFileName()));
+            Log.d("lio", String.format("stopping %1$s", mediaFile.getTitle()));
             mediaPlayer.stop();
-            listener.onStopped(mediaFile);
+            MediaFile stoppedFile = mediaFile;
             setMediaFile(null);
+            listener.onStopped(stoppedFile);
         }
     }
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-        //TODO: test
         if (mediaFile != null) {
-            Log.d("lio", String.format("%1$s stopped", mediaFile.getFileName()));
-            listener.onStopped(mediaFile);
+            Log.d("lio", String.format("%1$s stopped", mediaFile.getTitle()));
+            mediaFile.setCurrentPosition(mediaFile.getLength());
+            MediaFile finishedFile = mediaFile;
             setMediaFile(null);
+            listener.onStopped(finishedFile);
         }
     }
 
