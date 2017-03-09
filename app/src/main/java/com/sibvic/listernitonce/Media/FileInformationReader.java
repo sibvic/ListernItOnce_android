@@ -13,7 +13,7 @@ import java.io.InputStreamReader;
 /**
  * Reads playback information for the file.
  */
-public class FileInformationReader {
+class FileInformationReader {
 
     private static String convertStreamToString(InputStream is) throws Exception {
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
@@ -26,19 +26,23 @@ public class FileInformationReader {
         return sb.toString();
     }
 
-    public static long readLength(File file) {
+    static long readLength(File file) {
         return 0;//TODO: implement
     }
 
-    public static long readPosition(File file) {
+    static long readPosition(File file) {
         File infoFile = getInformationFile(file);
         if (!infoFile.exists() || infoFile.isDirectory()) {
             return 0;
         }
         try {
-            //TODO: test
             FileInputStream fin = new FileInputStream(infoFile);
             String ret = convertStreamToString(fin);
+            int indexOfNextLine = ret.indexOf("\n");
+            if (indexOfNextLine > 0) {
+                String numberString = ret.substring(0, indexOfNextLine);
+                return Long.parseLong(numberString);
+            }
             return Long.parseLong(ret);
         } catch (Exception e) {
             e.printStackTrace();

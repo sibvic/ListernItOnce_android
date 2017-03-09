@@ -47,11 +47,10 @@ public class Player implements MediaPlayer.OnCompletionListener {
         }
         getMediaFile(mediaFile);
         Log.d("lio", String.format("starting %1$s", mediaFile.getFileName()));
+        mediaPlayer.start();
         if (mediaFile.getCurrentPosition() > 0) {
-            //TODO: test
             mediaPlayer.seekTo((int)mediaFile.getCurrentPosition() * 1000);
         }
-        mediaPlayer.start();
         this.mediaFile.setLength(mediaPlayer.getDuration() / 1000);
         listener.onStarted(mediaFile);
     }

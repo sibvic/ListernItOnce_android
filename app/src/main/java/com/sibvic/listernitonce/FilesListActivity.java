@@ -1,11 +1,12 @@
 package com.sibvic.listernitonce;
 
 import android.app.ListActivity;
-import android.media.AudioManager;
 import android.os.Environment;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.sibvic.listernitonce.Media.FileFactory;
 import com.sibvic.listernitonce.Media.MediaFile;
@@ -22,6 +23,19 @@ public class FilesListActivity extends ListActivity implements PlayerCallback {
         setContentView(R.layout.activity_files_list);
         refreshFiles();
         player = new Player(this);
+
+        ImageButton playPauseButton = (ImageButton)findViewById(R.id.play_pause);
+        playPauseButton.setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (player.isPlaying()) {
+                    player.pause();
+                }
+                else {
+                    player.resume();
+                }
+            }
+        });
     }
     FileListAdapter adapter;
     Player player;
@@ -35,7 +49,7 @@ public class FilesListActivity extends ListActivity implements PlayerCallback {
     private void refreshFiles() {
         File directory = new File(Environment.getExternalStorageDirectory().toString() + "/Music");
         ArrayList<MediaFile> listItems = new ArrayList<>();
-        addFilesFromFolder(listItems, directory);
+        FileFactory.addFilesFromFolder(listItems, directory);
 
         MediaFile[] mediaFiles = listItems.toArray(new MediaFile[listItems.size()]);
         adapter = new FileListAdapter(this, mediaFiles);
@@ -43,51 +57,43 @@ public class FilesListActivity extends ListActivity implements PlayerCallback {
         setListAdapter(adapter);
     }
 
-    private void addFilesFromFolder(ArrayList<MediaFile> files, File folder) {
-        File[] filesInFolder = folder.listFiles();
-        if (filesInFolder == null) {
-            return;
-        }
-        for (File file : filesInFolder) {
-            if (file.isDirectory()) {
-                addFilesFromFolder(files, file);
-                continue;
-            }
-            if (FileFactory.isMediaFile(file)) {
-                files.add(FileFactory.getMediaFile(file));
-            }
-        }
-    }
-
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
+        if (player.isPlaying()) {
+            player.stop();
+        }
         super.onListItemClick(l, v, position, id);
         player.play(adapter.getItem(position));
     }
 
     @Override
     public void onStarted(MediaFile file) {
+        ImageButton playPauseButton = (ImageButton)findViewById(R.id.play_pause);
+        playPauseButton.setEnabled(true);
+        playPauseButton.setImageResource(android.R.drawable.ic_media_pause);
 
+        TextView currentFileName = (TextView)findViewById(R.id.current_file_name);
+        currentFileName.setText(file.getFileName());
     }
 
     @Override
     public void onPaused(MediaFile file) {
-        //TODO: save progress
+        ImageButton playPauseButton = (ImageButton)findViewById(R.id.play_pause);
+        playPauseButton.setImageResource(android.R.drawable.ic_media_play);
     }
 
     @Override
     public void onResumed(MediaFile file) {
-
+        ImageButton playPauseButton = (ImageButton)findViewById(R.id.play_pause);
+        playPauseButton.setImageResource(android.R.drawable.ic_media_pause);
     }
 
     @Override
     public void onStopped(MediaFile file) {
-
+        ImageButton playPauseButton = (ImageButton)findViewById(R.id.play_pause);
+        playPauseButton.setEnabled(false);
         if (file.getLength() > 0 && file.getCurrentPosition() >= file.getLength()) {
-            //TODO: delete finished media file
-        }
-        else {
-            //TODO: save progress
+            //TODO: delete finished media file, remove from the list and play the next on
         }
     }
 }

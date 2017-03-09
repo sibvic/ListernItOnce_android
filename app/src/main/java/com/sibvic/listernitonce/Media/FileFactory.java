@@ -3,13 +3,14 @@ package com.sibvic.listernitonce.Media;
 import android.support.annotation.NonNull;
 
 import java.io.File;
+import java.util.ArrayList;
 
 /**
  * Creates media file from a file.
  * Position is stored in the .info file.
  */
 public class FileFactory {
-    public static boolean isMediaFile(File file) {
+    private static boolean isMediaFile(File file) {
         try {
             String extension = getFileExtension(file);
             return extension.equalsIgnoreCase("mp3");
@@ -42,8 +43,24 @@ public class FileFactory {
         }
     }
 
+    public static void addFilesFromFolder(ArrayList<MediaFile> files, File folder) {
+        File[] filesInFolder = folder.listFiles();
+        if (filesInFolder == null) {
+            return;
+        }
+        for (File file : filesInFolder) {
+            if (file.isDirectory()) {
+                addFilesFromFolder(files, file);
+                continue;
+            }
+            if (FileFactory.isMediaFile(file)) {
+                files.add(FileFactory.getMediaFile(file));
+            }
+        }
+    }
+
     @NonNull
-    public static MediaFile getMediaFile(File file) {
+    private static MediaFile getMediaFile(File file) {
         long position = FileInformationReader.readPosition(file);
         long lengthInSeconds = FileInformationReader.readLength(file);
         return new MediaFile(file, lengthInSeconds, position);
