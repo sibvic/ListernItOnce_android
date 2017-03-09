@@ -1,7 +1,7 @@
 package com.sibvic.listernitonce;
 
 import android.app.ListActivity;
-import android.os.Environment;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -11,8 +11,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.sibvic.listernitonce.Media.FileFactory;
-import com.sibvic.listernitonce.Media.FileInformationWriter;
 import com.sibvic.listernitonce.Media.MediaFile;
+import com.sibvic.listernitonce.Options.Options;
+import com.sibvic.listernitonce.Options.OptionsManager;
 import com.sibvic.listernitonce.Player.Player;
 import com.sibvic.listernitonce.Player.PlayerCallback;
 
@@ -23,10 +24,14 @@ public class FilesListActivity extends ListActivity implements PlayerCallback {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        options = OptionsManager.create(this);
         setContentView(R.layout.activity_files_list);
         refreshFiles();
         player = new Player(this);
         handler.postDelayed(updateTimeTask, 1000);
+        if (options.getTargetFolder() == null || options.getTargetFolder().equals("")) {
+            handler.postDelayed(showOptionsTask, 100);
+        }
 
         ImageButton playPauseButton = (ImageButton)findViewById(R.id.play_pause);
         playPauseButton.setOnClickListener( new View.OnClickListener() {
@@ -41,6 +46,7 @@ public class FilesListActivity extends ListActivity implements PlayerCallback {
             }
         });
     }
+    Options options;
     FileListAdapter adapter;
     Player player;
     ArrayList<MediaFile> listItems;
@@ -59,10 +65,20 @@ public class FilesListActivity extends ListActivity implements PlayerCallback {
                 if(v != null) {
                     adapter.updateRow(indexOfFile, v);
                 }
-
             }
         }
     };
+
+    private Runnable showOptionsTask = new Runnable() {
+        public void run() {
+            showOptions();
+        }
+    };
+
+    private void showOptions() {
+        Intent intent = new Intent(this, null);//SettingsActivity.class);
+        startActivity(intent);
+    }
 
     @Override
     protected void onDestroy() {
@@ -71,9 +87,11 @@ public class FilesListActivity extends ListActivity implements PlayerCallback {
     }
 
     private void refreshFiles() {
-        File directory = new File(Environment.getExternalStorageDirectory().toString() + "/Music");
         listItems = new ArrayList<>();
-        FileFactory.addFilesFromFolder(listItems, directory);
+        if (options.getTargetFolder() != null && !options.getTargetFolder().equals("")) {
+            File directory = new File(options.getTargetFolder());
+            FileFactory.addFilesFromFolder(listItems, directory);
+        }
         adapter = new FileListAdapter(this, listItems);
         adapter.notifyDataSetChanged();
         setListAdapter(adapter);
