@@ -1,13 +1,16 @@
 package com.sibvic.listernitonce;
 
-import android.app.ListActivity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -20,7 +23,8 @@ import com.sibvic.listernitonce.Player.PlayerCallback;
 import java.io.File;
 import java.util.ArrayList;
 
-public class FilesListActivity extends ListActivity implements PlayerCallback {
+public class FilesListActivity extends AppCompatActivity implements PlayerCallback {
+        //extends ListActivity implements PlayerCallback {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -114,14 +118,16 @@ public class FilesListActivity extends ListActivity implements PlayerCallback {
         }
         adapter = new FileListAdapter(this, listItems);
         adapter.notifyDataSetChanged();
-        setListAdapter(adapter);
-    }
 
-    @Override
-    protected void onListItemClick(ListView l, View v, int position, long id) {
-        super.onListItemClick(l, v, position, id);
-        MediaFile fileToPlay = adapter.getItem(position);
-        playFile(fileToPlay);
+        ListView listView = (ListView)findViewById(android.R.id.list);
+        listView.setAdapter(adapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                MediaFile fileToPlay = adapter.getItem(position);
+                playFile(fileToPlay);
+            }
+        });
     }
 
     private void playFile(MediaFile fileToPlay) {
@@ -182,5 +188,12 @@ public class FilesListActivity extends ListActivity implements PlayerCallback {
             Log.d("lio", String.format("Failed to delete %1$s meta information",
                     file.getTitle()));
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_files_list, menu);
+        return true;
     }
 }
