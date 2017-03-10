@@ -2,8 +2,10 @@ package com.sibvic.listernitonce;
 
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
@@ -18,8 +20,10 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.MenuItem;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -107,7 +111,36 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.pref_general);
+
+            final Preference filePicker = findPreference("target_path");
+            filePicker.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                    Activity activity = getActivity();
+                    intent.setType("file/*");
+                    if (intent.resolveActivityInfo(activity.getPackageManager(), 0) != null) {
+                        startActivityForResult(intent, 10);
+                    }
+                    else {
+                        Log.d("lio", "No file managers");
+                    }
+                    return true;
+                }
+            });
+
             setHasOptionsMenu(true);
+        }
+
+        @Override
+        public void onActivityResult(int requestCode, int resultCode, Intent data) {
+            //get the new value from Intent data
+            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            SharedPreferences.Editor editor = settings.edit();
+            File selectedFile = new File(data.getData().getPath());
+            String path = selectedFile.getParentFile().getPath();
+            editor.putString("target_path", path);
+            editor.apply();
         }
 
         @Override

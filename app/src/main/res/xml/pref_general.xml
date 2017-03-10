@@ -1,5 +1,5 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <EditTextPreference
+    <Preference
         android:key="target_path"
         android:summary="Path to the folder with files to play"
         android:title="Path to files"
