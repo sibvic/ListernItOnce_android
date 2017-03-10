@@ -210,4 +210,11 @@ public class FilesListActivity extends AppCompatActivity implements PlayerCallba
         }
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        player.stop();
+        player.release();
+    }
 }
