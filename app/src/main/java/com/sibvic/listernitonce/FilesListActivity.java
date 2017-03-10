@@ -25,7 +25,6 @@ import java.io.File;
 import java.util.ArrayList;
 
 public class FilesListActivity extends AppCompatActivity implements PlayerCallback {
-        //extends ListActivity implements PlayerCallback {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,6 +52,16 @@ public class FilesListActivity extends AppCompatActivity implements PlayerCallba
         currentFileName.setText("---");
     }
 
+    SharedPreferences.OnSharedPreferenceChangeListener optionsChangeListener
+            = new SharedPreferences.OnSharedPreferenceChangeListener() {
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
+                                              String key) {
+            if (key.equals("target_path")) {
+                refreshFiles();
+            }
+        }
+    };
     private void handlePreferences() {
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
         String target_folder = settings.getString("target_path", "");
@@ -60,16 +69,7 @@ public class FilesListActivity extends AppCompatActivity implements PlayerCallba
             handler.postDelayed(showOptionsTask, 100);
         }
 
-        settings.registerOnSharedPreferenceChangeListener(
-                new SharedPreferences.OnSharedPreferenceChangeListener() {
-                @Override
-                public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
-                                                      String key) {
-                    if (key.equals("target_path")) {
-                        refreshFiles();
-                    }
-                }
-            });
+        settings.registerOnSharedPreferenceChangeListener(optionsChangeListener);
     }
 
     FileListAdapter adapter;
