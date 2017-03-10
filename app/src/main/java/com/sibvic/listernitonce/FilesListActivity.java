@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageButton;
@@ -47,6 +48,9 @@ public class FilesListActivity extends AppCompatActivity implements PlayerCallba
                 }
             }
         });
+
+        TextView currentFileName = (TextView)findViewById(R.id.current_file_name);
+        currentFileName.setText("---");
     }
 
     private void handlePreferences() {
@@ -195,5 +199,15 @@ public class FilesListActivity extends AppCompatActivity implements PlayerCallba
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_files_list, menu);
         return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                showOptions();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
