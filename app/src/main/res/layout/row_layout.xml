@@ -6,6 +6,6 @@
         android:id="@+id/label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="60px"
+        android:textSize="24sp"
         android:text="@+id/label"/>
 </LinearLayout>

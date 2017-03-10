@@ -14,9 +14,8 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_weight="20"
         android:id="@+id/current_file_name"
-        android:textSize="8pt"
+        android:textSize="24sp"
         app:layout_constraintRight_toLeftOf="@+id/play_pause"
         android:layout_marginRight="0dp"
         android:layout_marginLeft="8dp"
