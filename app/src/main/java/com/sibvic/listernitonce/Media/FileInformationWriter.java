@@ -16,6 +16,7 @@ public class FileInformationWriter {
         try {
             PrintWriter out = new PrintWriter(infoFile);
             out.println(Long.toString(currentFile.getCurrentPosition()));
+            out.flush();
             out.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();

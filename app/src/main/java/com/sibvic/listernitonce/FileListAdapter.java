@@ -8,19 +8,17 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import com.sibvic.listernitonce.Media.MediaFile;
-
 import java.util.ArrayList;
 import java.util.Locale;
 
 /**
  * List adapter for the media file.
  */
-class FileListAdapter extends ArrayAdapter<MediaFile> {
+class FileListAdapter extends ArrayAdapter<FileInfo> {
     private final Context context;
-    private final ArrayList<MediaFile> values;
+    private final ArrayList<FileInfo> values;
 
-    FileListAdapter(Context context, ArrayList<MediaFile> values) {
+    FileListAdapter(Context context, ArrayList<FileInfo> values) {
         super(context, R.layout.row_layout, values);
         this.context = context;
         this.values = values;
@@ -40,7 +38,7 @@ class FileListAdapter extends ArrayAdapter<MediaFile> {
 
     void updateRow(int position, View rowView) {
         TextView textView = (TextView) rowView.findViewById(R.id.label);
-        MediaFile mediaFile = values.get(position);
+        FileInfo mediaFile = values.get(position);
         long length = mediaFile.getLength();
         if (length > 0) {
             long currentPosition = mediaFile.getCurrentPosition();
