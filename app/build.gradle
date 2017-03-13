@@ -27,4 +27,5 @@ dependencies {
     compile 'com.android.support:support-v4:25.2.0'
     compile 'com.android.support:support-vector-drawable:25.2.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    compile 'ch.acra:acra:4.9.0'
 }
