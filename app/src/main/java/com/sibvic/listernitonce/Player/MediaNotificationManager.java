@@ -51,6 +51,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
     private final int notificationColor;
 
     private boolean started = false;
+    private int lastPlaybackState = 0;
 
     public MediaNotificationManager(MediaPlaybackService service) throws RemoteException {
         super();
@@ -73,7 +74,6 @@ public class MediaNotificationManager extends BroadcastReceiver {
         // Cancel all notifications to handle the case where the Service was killed and
         // restarted by the system.
         notificationManager.cancelAll();
-        Intent i = new Intent(service, MediaPlaybackService.class);
     }
 
     /**
@@ -85,6 +85,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
         if (!started) {
             metadata = controller.getMetadata();
             playbackState = controller.getPlaybackState();
+            lastPlaybackState = playbackState.getState();
 
             // The notification must be updated after setting started to true
             Notification notification = createNotification();
@@ -179,9 +180,10 @@ public class MediaNotificationManager extends BroadcastReceiver {
         @Override
         public void onPlaybackStateChanged(@NonNull PlaybackStateCompat state) {
             playbackState = state;
-            if (playbackState.getState() == state.getState()) {
+            if (lastPlaybackState == state.getState()) {
                 return;
             }
+            lastPlaybackState = state.getState();
             if (state.getState() == PlaybackStateCompat.STATE_STOPPED
                     || state.getState() == PlaybackStateCompat.STATE_NONE) {
                 stopNotification();
@@ -221,20 +223,19 @@ public class MediaNotificationManager extends BroadcastReceiver {
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(service);
 
         addPlayPauseAction(notificationBuilder);
-        addArt(notificationBuilder);
+        //addArt(notificationBuilder);
 
         MediaDescriptionCompat description = metadata.getDescription();
 
         int playPauseButtonPosition = 1;
         notificationBuilder
-                .setWhen(0)
                 .setStyle(new android.support.v7.app.NotificationCompat.MediaStyle()
                         .setShowActionsInCompactView(
                                 new int[]{playPauseButtonPosition})  // show only play/pause in compact view
                         .setMediaSession(sessionToken))
+                .setSmallIcon(R.drawable.ic_info_black_24dp)//TODO: set proper icon
                 .setColor(notificationColor)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setUsesChronometer(true)
                 .setContentIntent(createContentIntent(description))
                 .setContentTitle(description.getTitle())
                 .setContentText(description.getSubtitle());
