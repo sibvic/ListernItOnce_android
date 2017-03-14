@@ -1,9 +1,14 @@
 package com.sibvic.listernitonce.Player;
 
+import android.app.Service;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
+import android.os.RemoteException;
 import android.preference.PreferenceManager;
+import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.media.MediaBrowserCompat;
@@ -23,10 +28,11 @@ import java.util.List;
  * Player service
  */
 public class MediaPlaybackService extends MediaBrowserServiceCompat implements PlayerCallback {
-    private MediaSessionCompat mMediaSession;
-    private PlaybackStateCompat.Builder mStateBuilder;
+    private MediaSessionCompat mediaSession;
+    private PlaybackStateCompat.Builder stateBuilder;
+    private MediaNotificationManager notificationManager;
     MediaSessionCompatCallback callback;
-    Player mPlayer = new Player(this);
+    Player player = new Player(this);
 
     @Override
     public void onCreate() {
@@ -34,27 +40,38 @@ public class MediaPlaybackService extends MediaBrowserServiceCompat implements P
 
         handler.postDelayed(updateTimeTask, 1000);
 
-        // Create a MediaSessionCompat
-        mMediaSession = new MediaSessionCompat(this, "lio");
-
-        // Enable callbacks from MediaButtons and TransportControls
-        mMediaSession.setFlags(
+        mediaSession = new MediaSessionCompat(this, "lio");
+        mediaSession.setFlags(
                 MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
-                        MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
+                MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
 
         // Set an initial PlaybackState with ACTION_PLAY, so media buttons can start the player
-        mStateBuilder = new PlaybackStateCompat.Builder()
+        stateBuilder = new PlaybackStateCompat.Builder()
                 .setActions(
                         PlaybackStateCompat.ACTION_PLAY |
-                                PlaybackStateCompat.ACTION_PLAY_PAUSE);
-        mMediaSession.setPlaybackState(mStateBuilder.build());
+                        PlaybackStateCompat.ACTION_PLAY_PAUSE);
+        mediaSession.setPlaybackState(stateBuilder.build());
 
         // MySessionCallback() has methods that handle callbacks from a media controller
-        callback = new MediaSessionCompatCallback(this, mPlayer);
-        mMediaSession.setCallback(callback);
+        callback = new MediaSessionCompatCallback(this, player);
+        mediaSession.setCallback(callback);
 
         // Set the session's token so that client activities can communicate with it.
-        setSessionToken(mMediaSession.getSessionToken());
+        setSessionToken(mediaSession.getSessionToken());
+
+        try {
+            notificationManager = new MediaNotificationManager(this);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        if (player.isPlaying()) {
+            player.stop();
+        }
+        super.onDestroy();
     }
 
     @Nullable
@@ -92,23 +109,29 @@ public class MediaPlaybackService extends MediaBrowserServiceCompat implements P
         builder.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, file.getLength());
         builder.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, file.getFile().getAbsolutePath());
         builder.putLong("current_position", file.getCurrentPosition());
-        mMediaSession.setMetadata(builder.build());
-        mMediaSession.setPlaybackState(buildState(file, PlaybackStateCompat.STATE_PLAYING));
+        mediaSession.setMetadata(builder.build());
+        mediaSession.setPlaybackState(buildState(file, PlaybackStateCompat.STATE_PLAYING));
+        mediaSession.setActive(true);
+        notificationManager.startNotification();
+        startService(new Intent(getApplicationContext(), MediaPlaybackService.class));
+        Log.d("lio", String.format("Starting playing of %1$s", file.getTitle()));
     }
 
     @NonNull
     private PlaybackStateCompat buildState(MediaFile file, int state) {
-        return mStateBuilder.setState(state, file.getCurrentPosition(), 1).build();
+        return stateBuilder.setState(state, file.getCurrentPosition(), 1).build();
     }
 
     @Override
     public void onPaused(MediaFile file) {
-        mMediaSession.setPlaybackState(buildState(file, PlaybackStateCompat.STATE_PAUSED));
+        mediaSession.setPlaybackState(buildState(file, PlaybackStateCompat.STATE_PAUSED));
+        Log.d("lio", String.format("Pausing of %1$s", file.getTitle()));
     }
 
     @Override
     public void onResumed(MediaFile file) {
-        mMediaSession.setPlaybackState(buildState(file, PlaybackStateCompat.STATE_PLAYING));
+        mediaSession.setPlaybackState(buildState(file, PlaybackStateCompat.STATE_PLAYING));
+        Log.d("lio", String.format("Resuming of %1$s", file.getTitle()));
     }
 
     @Override
@@ -119,7 +142,11 @@ public class MediaPlaybackService extends MediaBrowserServiceCompat implements P
                 deleteFile(file);
             }
         }
-        mMediaSession.setPlaybackState(buildState(file, PlaybackStateCompat.STATE_STOPPED));
+        mediaSession.setPlaybackState(buildState(file, PlaybackStateCompat.STATE_STOPPED));
+        mediaSession.setActive(false);
+        notificationManager.stopNotification();
+        stopSelf();
+        Log.d("lio", String.format("Stopping of %1$s", file.getTitle()));
     }
 
     private void deleteFile(MediaFile file) {
@@ -135,16 +162,16 @@ public class MediaPlaybackService extends MediaBrowserServiceCompat implements P
     private Handler handler = new Handler();
     private Runnable updateTimeTask = new Runnable() {
         public void run() {
-            handler.postDelayed(this, 1000);
-            MediaFile currentFile = mPlayer.getMediaFile();
+            handler.postDelayed(this, 800);
+            MediaFile currentFile = player.getMediaFile();
             if (currentFile == null) {
                 return;
             }
-            if (mPlayer.isPlaying()) {
-                mMediaSession.setPlaybackState(buildState(currentFile, PlaybackStateCompat.STATE_PLAYING));
+            if (player.isPlaying()) {
+                mediaSession.setPlaybackState(buildState(currentFile, PlaybackStateCompat.STATE_PLAYING));
             }
             else {
-                mMediaSession.setPlaybackState(buildState(currentFile, PlaybackStateCompat.STATE_PAUSED));
+                mediaSession.setPlaybackState(buildState(currentFile, PlaybackStateCompat.STATE_PAUSED));
             }
         }
     };

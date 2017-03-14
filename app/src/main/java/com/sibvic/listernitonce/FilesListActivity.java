@@ -43,7 +43,7 @@ public class FilesListActivity extends AppCompatActivity {
 
         player = new MediaBrowserCompat(this,
                 new ComponentName(this, MediaPlaybackService.class),
-                mConnectionCallbacks, null);
+                connectionCallbacks, null);
         player.subscribe("root", mSubscriptionCallback);
 
         handlePreferences();
@@ -80,11 +80,10 @@ public class FilesListActivity extends AppCompatActivity {
         player.disconnect();
     }
 
-    private final MediaBrowserCompat.ConnectionCallback mConnectionCallbacks =
+    private final MediaBrowserCompat.ConnectionCallback connectionCallbacks =
             new MediaBrowserCompat.ConnectionCallback() {
                 @Override
                 public void onConnected() {
-
                     // Get the token for the MediaSession
                     MediaSessionCompat.Token token = player.getSessionToken();
 
@@ -208,6 +207,13 @@ public class FilesListActivity extends AppCompatActivity {
 
             @Override
             public void onPlaybackStateChanged(PlaybackStateCompat state) {
+                if (currentlyPlaying == null) {
+                    MediaMetadataCompat metadata = MediaControllerCompat
+                            .getMediaController(FilesListActivity.this).getMetadata();
+                    if (metadata != null) {
+                        onMetadataChanged(metadata);
+                    }
+                }
                 updatePlayPauseButton(state);
                 updateProgress(state);
             }

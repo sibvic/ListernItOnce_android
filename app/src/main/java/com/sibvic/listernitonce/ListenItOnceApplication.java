@@ -11,7 +11,7 @@ import org.acra.annotation.*;
  */
 
 @ReportsCrashes(
-        mailTo = "reports@yourdomain.com",
+        mailTo = "sibvic@gmail.com",
         mode = ReportingInteractionMode.TOAST,
         resToastText = R.string.crash_report_text
 )

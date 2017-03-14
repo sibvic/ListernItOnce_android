@@ -79,4 +79,6 @@
     <string name="pref_title_vibrate">Vibrate</string>
     <string name="preferences">Preferences</string>
     <string name="crash_report_text">Listen It Once has crashed</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
 </resources>

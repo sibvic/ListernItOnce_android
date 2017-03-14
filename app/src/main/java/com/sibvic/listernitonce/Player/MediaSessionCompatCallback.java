@@ -2,10 +2,8 @@ package com.sibvic.listernitonce.Player;
 
 import android.content.Context;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.util.Log;
 
@@ -91,7 +89,6 @@ class MediaSessionCompatCallback extends MediaSessionCompat.Callback {
         if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
             mPlayer.resume();
             //registerReceiver(myNoisyAudioStreamReceiver, intentFilter);
-            //service.startForeground(myPlayerNotification);
         }
     }
 
@@ -100,16 +97,12 @@ class MediaSessionCompatCallback extends MediaSessionCompat.Callback {
         AudioManager am = (AudioManager)mContext.getSystemService(Context.AUDIO_SERVICE);
         am.abandonAudioFocus(afChangeListener);
         //unregisterReceiver(myNoisyAudioStreamReceiver);
-        //service.stop(self);
-        //mediaSession.setActive(false);
         mPlayer.stop();
-        //service.stopForeground(true);
     }
 
     @Override
     public void onPause() {
         mPlayer.pause();
         //unregisterReceiver(myNoisyAudioStreamReceiver, intentFilter);
-        //service.stopForeground(false);
     }
 }
