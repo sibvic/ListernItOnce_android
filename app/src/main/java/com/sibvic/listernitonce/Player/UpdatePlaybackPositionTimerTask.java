@@ -11,11 +11,11 @@ import java.util.TimerTask;
 /**
  * Updates position of the media file every second
  */
-public class UpdatePlaybackPositionTimerTask extends TimerTask {
-    MediaPlayer player;
-    MediaFile file;
+class UpdatePlaybackPositionTimerTask extends TimerTask {
+    private MediaPlayer player;
+    private MediaFile file;
 
-    public UpdatePlaybackPositionTimerTask(MediaPlayer player) {
+    UpdatePlaybackPositionTimerTask(MediaPlayer player) {
         this.player = player;
     }
 
@@ -23,7 +23,7 @@ public class UpdatePlaybackPositionTimerTask extends TimerTask {
         this.file = file;
     }
 
-    int tickCounter = 0;
+    private int tickCounter = 0;
 
     @Override
     public void run() {
