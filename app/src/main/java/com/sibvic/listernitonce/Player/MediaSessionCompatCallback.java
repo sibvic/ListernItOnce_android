@@ -20,28 +20,28 @@ import java.util.ArrayList;
 class MediaSessionCompatCallback extends MediaSessionCompat.Callback {
 
     private IntentFilter intentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
-    private Player mPlayer;
-    private ArrayList<MediaFile> mFiles = new ArrayList<>();
+    private Player player;
+    private ArrayList<MediaFile> files = new ArrayList<>();
     private String targetFolder = "/";
 
     MediaSessionCompatCallback(Context context, Player player) {
-        this.mContext = context;
-        this.mPlayer = player;
+        this.context = context;
+        this.player = player;
     }
 
     ArrayList<MediaFile> getFiles() {
-        return mFiles;
+        return files;
     }
 
     private void refreshFiles() {
-        mFiles.clear();
+        files.clear();
         if (!targetFolder.equals("")) {
             File directory = new File(targetFolder);
-            FileFactory.addFilesFromFolder(mFiles, directory);
+            FileFactory.addFilesFromFolder(files, directory);
         }
     }
 
-    private Context mContext;
+    private Context context;
     private AudioManager.OnAudioFocusChangeListener afChangeListener = new AudioManager.OnAudioFocusChangeListener() {
         @Override
         public void onAudioFocusChange(int focusChange) {
@@ -50,13 +50,12 @@ class MediaSessionCompatCallback extends MediaSessionCompat.Callback {
     };
 //    private BecomingNoisyReceiver myNoisyAudioStreamReceiver = new BecomingNoisyReceiver();
 //    private MediaStyleNotification myPlayerNotification;
-    //private MediaBrowserService service;
 
     @Override
     public void onPlayFromMediaId(String mediaId, Bundle extras) {
         MediaFile fileToPlay = findFileById(mediaId);
         if (fileToPlay != null) {
-            mPlayer.play(fileToPlay);
+            player.play(fileToPlay);
         }
         else {
             Log.d("lio", "File not found: " + mediaId);
@@ -64,7 +63,7 @@ class MediaSessionCompatCallback extends MediaSessionCompat.Callback {
     }
 
     private MediaFile findFileById(String mediaId) {
-        for (MediaFile file : mFiles) {
+        for (MediaFile file : files) {
             if (file.getFile().getAbsolutePath().equals(mediaId)) {
                 return file;
             }
@@ -81,28 +80,32 @@ class MediaSessionCompatCallback extends MediaSessionCompat.Callback {
 
     @Override
     public void onPlay() {
-        AudioManager am = (AudioManager)mContext.getSystemService(Context.AUDIO_SERVICE);
+        AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         int result = am.requestAudioFocus(afChangeListener,
                 AudioManager.STREAM_MUSIC,
                 AudioManager.AUDIOFOCUS_GAIN);
 
         if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-            mPlayer.resume();
+            player.resume();
             //registerReceiver(myNoisyAudioStreamReceiver, intentFilter);
         }
     }
 
     @Override
     public void onStop() {
-        AudioManager am = (AudioManager)mContext.getSystemService(Context.AUDIO_SERVICE);
+        AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         am.abandonAudioFocus(afChangeListener);
         //unregisterReceiver(myNoisyAudioStreamReceiver);
-        mPlayer.stop();
+        player.stop();
     }
 
     @Override
     public void onPause() {
-        mPlayer.pause();
+        player.pause();
         //unregisterReceiver(myNoisyAudioStreamReceiver, intentFilter);
+    }
+
+    void removeFile(int index) {
+        files.remove(index);
     }
 }

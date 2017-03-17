@@ -5,9 +5,10 @@ import com.sibvic.listernitonce.Media.MediaFile;
 /**
  * Notifies listener about playback events.
  */
-public interface PlayerCallback {
+interface PlayerCallback {
     void onStarted(MediaFile file);
     void onPaused(MediaFile file);
     void onResumed(MediaFile file);
     void onStopped(MediaFile file);
+    void onCompleted(MediaFile file);
 }

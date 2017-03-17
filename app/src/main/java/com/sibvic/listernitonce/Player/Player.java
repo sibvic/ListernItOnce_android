@@ -14,13 +14,13 @@ import java.util.Timer;
  * Player starts playing from the last position.
  * Updates current position in the MediaFile
  */
-public class Player implements MediaPlayer.OnCompletionListener {
+class Player implements MediaPlayer.OnCompletionListener {
     private MediaPlayer mediaPlayer;
     private MediaFile mediaFile;
     private PlayerCallback listener;
     private UpdatePlaybackPositionTimerTask positionUpdater;
 
-    public Player(PlayerCallback listener) {
+    Player(PlayerCallback listener) {
         this.listener = listener;
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setOnCompletionListener(this);
@@ -29,7 +29,7 @@ public class Player implements MediaPlayer.OnCompletionListener {
         timer.schedule(positionUpdater, 1000, 1000);
     }
 
-    public void play(MediaFile mediaFile) {
+    void play(MediaFile mediaFile) {
         if (this.mediaFile != null) {
             stop();
         }
@@ -57,7 +57,7 @@ public class Player implements MediaPlayer.OnCompletionListener {
         positionUpdater.setFile(mediaFile);
     }
 
-    public void pause() {
+    void pause() {
         if (mediaPlayer.isPlaying()) {
             Log.d("lio", String.format("pausing %1$s", mediaFile.getTitle()));
             mediaPlayer.pause();
@@ -65,7 +65,7 @@ public class Player implements MediaPlayer.OnCompletionListener {
         }
     }
 
-    public void resume() {
+    void resume() {
         if (!mediaPlayer.isPlaying() && mediaFile != null) {
             Log.d("lio", String.format("resuming %1$s", mediaFile.getTitle()));
             mediaPlayer.start();
@@ -73,14 +73,11 @@ public class Player implements MediaPlayer.OnCompletionListener {
         }
     }
 
-    public boolean isPlaying() {
-        if (mediaFile == null) {
-            return false;
-        }
-        return mediaPlayer.isPlaying();
+    boolean isPlaying() {
+        return mediaFile != null && mediaPlayer.isPlaying();
     }
 
-    public void stop() {
+    void stop() {
         if (mediaFile != null) {
             Log.d("lio", String.format("stopping %1$s", mediaFile.getTitle()));
             mediaPlayer.stop();
@@ -97,7 +94,7 @@ public class Player implements MediaPlayer.OnCompletionListener {
             mediaFile.setCurrentPosition(mediaFile.getLength());
             MediaFile finishedFile = mediaFile;
             setMediaFile(null);
-            listener.onStopped(finishedFile);
+            listener.onCompleted(finishedFile);
         }
     }
 
@@ -116,7 +113,7 @@ public class Player implements MediaPlayer.OnCompletionListener {
         }
     }
 
-    public MediaFile getMediaFile() {
+    MediaFile getMediaFile() {
         return mediaFile;
     }
 }

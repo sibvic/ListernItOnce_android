@@ -235,10 +235,18 @@ public class FilesListActivity extends AppCompatActivity {
         currentlyPlaying.setCurrentPosition((int)state.getPosition());
         int indexOfFile = listItems.indexOf(currentlyPlaying);
         if (indexOfFile != -1) {
-            ListView listView = (ListView)findViewById(android.R.id.list);
-            View v = listView.getChildAt(indexOfFile - listView.getFirstVisiblePosition());
-            if(v != null) {
-                adapter.updateRow(indexOfFile, v);
+            ListView listView = (ListView) findViewById(android.R.id.list);
+            if (state.getState() == PlaybackStateCompat.STATE_SKIPPING_TO_NEXT
+                    && currentlyPlaying.getLength() >= currentlyPlaying.getCurrentPosition()) {
+                listItems.remove(indexOfFile);
+                adapter.remove(currentlyPlaying);
+                adapter.notifyDataSetChanged();
+            }
+            else {
+                View v = listView.getChildAt(indexOfFile - listView.getFirstVisiblePosition());
+                if (v != null) {
+                    adapter.updateRow(indexOfFile, v);
+                }
             }
         }
     }

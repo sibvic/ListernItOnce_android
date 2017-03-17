@@ -97,6 +97,7 @@ public class MediaPlaybackService extends MediaBrowserServiceCompat implements P
         MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
                 .setMediaId(file.getFile().getAbsolutePath())
                 .setTitle(file.getTitle())
+                .setSubtitle("")
                 .setExtras(bundle)
                 .build();
         return new MediaBrowserCompat.MediaItem(description, 0);
@@ -136,17 +137,47 @@ public class MediaPlaybackService extends MediaBrowserServiceCompat implements P
 
     @Override
     public void onStopped(MediaFile file) {
-        if (file.getLength() > 0 && file.getCurrentPosition() >= file.getLength()) {
-            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-            if (preferences.getBoolean("delete_after_play", false)) {
-                deleteFile(file);
-            }
-        }
         mediaSession.setPlaybackState(buildState(file, PlaybackStateCompat.STATE_STOPPED));
         mediaSession.setActive(false);
         notificationManager.stopNotification();
         stopSelf();
         Log.d("lio", String.format("Stopping of %1$s", file.getTitle()));
+    }
+
+    private int findFileIndex(String fileId) {
+        ArrayList<MediaFile> files = callback.getFiles();
+        for (int i = 0; i < files.size(); ++i) {
+            if (files.get(i).getFile().getAbsolutePath().equals(fileId)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    @Override
+    public void onCompleted(MediaFile file) {
+        //HACK. Use some kind of notification about item remove/list update.
+        file.setCurrentPosition(file.getLength());
+        mediaSession.setPlaybackState(buildState(file, PlaybackStateCompat.STATE_SKIPPING_TO_NEXT));
+
+        int indexOfFile = findFileIndex(file.getFile().getAbsolutePath());
+        handleCompletedFile(file);
+        if (indexOfFile == -1) {
+            return;
+        }
+        callback.removeFile(indexOfFile);
+        ArrayList<MediaFile> files = callback.getFiles();
+        if (indexOfFile <= files.size() - 1) {
+            MediaFile nextFile = files.get(indexOfFile);
+            callback.onPlayFromMediaId(nextFile.getFile().getAbsolutePath(), null);
+        }
+    }
+
+    private void handleCompletedFile(MediaFile file) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        if (preferences.getBoolean("delete_after_play", false)) {
+            deleteFile(file);
+        }
     }
 
     private void deleteFile(MediaFile file) {

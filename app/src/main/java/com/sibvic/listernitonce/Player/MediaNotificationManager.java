@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
@@ -46,7 +47,6 @@ public class MediaNotificationManager extends BroadcastReceiver {
 
     private final PendingIntent pauseIntent;
     private final PendingIntent playIntent;
-    private final PendingIntent stopCastIntent;
 
     private final int notificationColor;
 
@@ -67,7 +67,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
                 new Intent(ACTION_PAUSE).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT);
         playIntent = PendingIntent.getBroadcast(service, REQUEST_CODE,
                 new Intent(ACTION_PLAY).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT);
-        stopCastIntent = PendingIntent.getBroadcast(service, REQUEST_CODE,
+        PendingIntent stopCastIntent = PendingIntent.getBroadcast(service, REQUEST_CODE,
                 new Intent(ACTION_STOP_CASTING).setPackage(pkg),
                 PendingIntent.FLAG_CANCEL_CURRENT);
 
@@ -90,7 +90,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
             // The notification must be updated after setting started to true
             Notification notification = createNotification();
             if (notification != null) {
-                controller.registerCallback(mCb);
+                controller.registerCallback(callback);
                 IntentFilter filter = new IntentFilter();
                 filter.addAction(ACTION_PAUSE);
                 filter.addAction(ACTION_PLAY);
@@ -110,7 +110,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
     public void stopNotification() {
         if (started) {
             started = false;
-            controller.unregisterCallback(mCb);
+            controller.unregisterCallback(callback);
             try {
                 notificationManager.cancel(NOTIFICATION_ID);
                 service.unregisterReceiver(this);
@@ -152,14 +152,14 @@ public class MediaNotificationManager extends BroadcastReceiver {
         if (sessionToken == null && freshToken != null
                 || sessionToken != null && !sessionToken.equals(freshToken)) {
             if (controller != null) {
-                controller.unregisterCallback(mCb);
+                controller.unregisterCallback(callback);
             }
             sessionToken = freshToken;
             if (sessionToken != null) {
                 controller = new MediaControllerCompat(service, sessionToken);
                 transportControls = controller.getTransportControls();
                 if (started) {
-                    controller.registerCallback(mCb);
+                    controller.registerCallback(callback);
                 }
             }
         }
@@ -168,15 +168,11 @@ public class MediaNotificationManager extends BroadcastReceiver {
     private PendingIntent createContentIntent(MediaDescriptionCompat description) {
         Intent openUI = new Intent(service, FilesListActivity.class);
         openUI.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        //openUI.putExtra(FilesListActivity.EXTRA_START_FULLSCREEN, true);
-        if (description != null) {
-            //openUI.putExtra(FilesListActivity.EXTRA_CURRENT_MEDIA_DESCRIPTION, description);
-        }
         return PendingIntent.getActivity(service, REQUEST_CODE, openUI,
                 PendingIntent.FLAG_CANCEL_CURRENT);
     }
 
-    private final MediaControllerCompat.Callback mCb = new MediaControllerCompat.Callback() {
+    private final MediaControllerCompat.Callback callback = new MediaControllerCompat.Callback() {
         @Override
         public void onPlaybackStateChanged(@NonNull PlaybackStateCompat state) {
             playbackState = state;
@@ -233,12 +229,17 @@ public class MediaNotificationManager extends BroadcastReceiver {
                         .setShowActionsInCompactView(
                                 new int[]{playPauseButtonPosition})  // show only play/pause in compact view
                         .setMediaSession(sessionToken))
-                .setSmallIcon(R.drawable.ic_info_black_24dp)//TODO: set proper icon
                 .setColor(notificationColor)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setContentIntent(createContentIntent(description))
                 .setContentTitle(description.getTitle())
                 .setContentText(description.getSubtitle());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            notificationBuilder.setSmallIcon(R.drawable.ic_info_black_24dp);//TODO: set proper icon
+        } else {
+            notificationBuilder.setSmallIcon(R.drawable.ic_main_icon);
+        }
+
 
 //        if (controller != null && controller.getExtras() != null) {
 //            String castName = controller.getExtras().getString(MediaPlaybackService.EXTRA_CONNECTED_CAST);
@@ -272,7 +273,6 @@ public class MediaNotificationManager extends BroadcastReceiver {
             }
         }
 //        notificationBuilder
-//                .setSmallIcon(R.drawable.ic_notification)
 //                .setLargeIcon(art);
         if (fetchArtUrl != null) {
             fetchBitmapFromURLAsync(fetchArtUrl, notificationBuilder);
