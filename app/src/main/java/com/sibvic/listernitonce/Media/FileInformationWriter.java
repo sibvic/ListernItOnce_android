@@ -4,6 +4,8 @@ import android.support.annotation.NonNull;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
@@ -14,11 +16,12 @@ public class FileInformationWriter {
     public static void saveInformation(MediaFile currentFile) {
         File infoFile = currentFile.getMetaInformationFile();
         try {
-            PrintWriter out = new PrintWriter(infoFile);
+            FileWriter outFile = new FileWriter(infoFile.getAbsoluteFile());
+            PrintWriter out = new PrintWriter(outFile);
             out.println(Long.toString(currentFile.getCurrentPosition()));
             out.flush();
             out.close();
-        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

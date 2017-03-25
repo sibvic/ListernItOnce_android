@@ -18,9 +18,14 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
+import android.view.KeyEvent;
 
 import com.sibvic.listernitonce.FilesListActivity;
 import com.sibvic.listernitonce.R;
+
+import static android.content.Context.TELEPHONY_SERVICE;
 
 /**
  * Notifications for the MediaSession
@@ -34,7 +39,6 @@ public class MediaNotificationManager extends BroadcastReceiver {
 
     public static final String ACTION_PAUSE = "com.sibvic.listernitonce.player.pause";
     public static final String ACTION_PLAY = "com.sibvic.listernitonce.player.play";
-    public static final String ACTION_STOP_CASTING = "com.sibvic.listernitonce.player.stop_cast";
 
     private MediaSessionCompat.Token sessionToken;
     private MediaControllerCompat controller;
@@ -67,9 +71,6 @@ public class MediaNotificationManager extends BroadcastReceiver {
                 new Intent(ACTION_PAUSE).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT);
         playIntent = PendingIntent.getBroadcast(service, REQUEST_CODE,
                 new Intent(ACTION_PLAY).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT);
-        PendingIntent stopCastIntent = PendingIntent.getBroadcast(service, REQUEST_CODE,
-                new Intent(ACTION_STOP_CASTING).setPackage(pkg),
-                PendingIntent.FLAG_CANCEL_CURRENT);
 
         // Cancel all notifications to handle the case where the Service was killed and
         // restarted by the system.
@@ -91,14 +92,17 @@ public class MediaNotificationManager extends BroadcastReceiver {
             Notification notification = createNotification();
             if (notification != null) {
                 controller.registerCallback(callback);
-                IntentFilter filter = new IntentFilter();
+                IntentFilter filter = new IntentFilter(Intent.ACTION_MEDIA_BUTTON);
                 filter.addAction(ACTION_PAUSE);
                 filter.addAction(ACTION_PLAY);
-                filter.addAction(ACTION_STOP_CASTING);
                 service.registerReceiver(this, filter);
 
                 service.startForeground(NOTIFICATION_ID, notification);
                 started = true;
+            }
+            TelephonyManager mgr = (TelephonyManager) service.getSystemService(TELEPHONY_SERVICE);
+            if(mgr != null) {
+                mgr.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
             }
         }
     }
@@ -118,27 +122,41 @@ public class MediaNotificationManager extends BroadcastReceiver {
                 // ignore if the receiver is not registered.
             }
             service.stopForeground(true);
+            TelephonyManager mgr = (TelephonyManager) service.getSystemService(TELEPHONY_SERVICE);
+            if(mgr != null) {
+                mgr.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
+            }
         }
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
         final String action = intent.getAction();
-        switch (action) {
-            case ACTION_PAUSE:
+        if (action.equals(ACTION_PAUSE)) {
+            transportControls.pause();
+            return;
+        } else if (action.equals(ACTION_PLAY)) {
+            transportControls.play();
+            return;
+        }
+
+        KeyEvent key = intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
+        if (key == null) {
+            return;
+        }
+        if(key.getAction() == KeyEvent.ACTION_UP) {
+            int keycode = key.getKeyCode();
+            if(keycode == KeyEvent.KEYCODE_MEDIA_PAUSE) {
                 transportControls.pause();
-                break;
-            case ACTION_PLAY:
+            } else if(keycode == KeyEvent.KEYCODE_MEDIA_PLAY) {
                 transportControls.play();
-                break;
-            case ACTION_STOP_CASTING:
-                Intent i = new Intent(context, MediaPlaybackService.class);
-//                i.setAction(MediaPlaybackService.ACTION_CMD);
-//                i.putExtra(MediaPlaybackService.CMD_NAME, MediaPlaybackService.CMD_STOP_CASTING);
-                service.startService(i);
-                break;
-            default:
-                break;
+            } else if(keycode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
+                if (controller.getPlaybackState().getState() == PlaybackStateCompat.STATE_PLAYING) {
+                    transportControls.pause();
+                } else if (controller.getPlaybackState().getState() == PlaybackStateCompat.STATE_PAUSED) {
+                    transportControls.play();
+                }
+            }
         }
     }
 
@@ -171,6 +189,26 @@ public class MediaNotificationManager extends BroadcastReceiver {
         return PendingIntent.getActivity(service, REQUEST_CODE, openUI,
                 PendingIntent.FLAG_CANCEL_CURRENT);
     }
+
+    boolean wasPlaying = false;
+
+    PhoneStateListener phoneStateListener = new PhoneStateListener() {
+        @Override
+        public void onCallStateChanged(int state, String incomingNumber) {
+            if (state == TelephonyManager.CALL_STATE_RINGING) {
+                wasPlaying = playbackState.getState() == PlaybackStateCompat.STATE_PLAYING;
+                if (wasPlaying) {
+                    transportControls.pause();
+                }
+            } else if(state == TelephonyManager.CALL_STATE_IDLE) {
+                if (wasPlaying) {
+                    transportControls.play();
+                    wasPlaying = false;
+                }
+            }
+            super.onCallStateChanged(state, incomingNumber);
+        }
+    };
 
     private final MediaControllerCompat.Callback callback = new MediaControllerCompat.Callback() {
         @Override
@@ -239,7 +277,6 @@ public class MediaNotificationManager extends BroadcastReceiver {
         } else {
             notificationBuilder.setSmallIcon(R.drawable.ic_main_icon);
         }
-
 
 //        if (controller != null && controller.getExtras() != null) {
 //            String castName = controller.getExtras().getString(MediaPlaybackService.EXTRA_CONNECTED_CAST);

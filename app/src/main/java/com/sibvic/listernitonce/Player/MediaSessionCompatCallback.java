@@ -45,7 +45,7 @@ class MediaSessionCompatCallback extends MediaSessionCompat.Callback {
     private AudioManager.OnAudioFocusChangeListener afChangeListener = new AudioManager.OnAudioFocusChangeListener() {
         @Override
         public void onAudioFocusChange(int focusChange) {
-
+            Log.d("lio", "");
         }
     };
 //    private BecomingNoisyReceiver myNoisyAudioStreamReceiver = new BecomingNoisyReceiver();

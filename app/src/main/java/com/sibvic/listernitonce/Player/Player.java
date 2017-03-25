@@ -103,6 +103,9 @@ class Player implements MediaPlayer.OnCompletionListener {
     }
 
     private void releaseMediaPlayer() {
+        if (mediaFile != null) {
+            setMediaFile(null);
+        }
         if (mediaPlayer != null) {
             try {
                 mediaPlayer.release();
