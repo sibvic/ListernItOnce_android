@@ -38,3 +38,11 @@ captures/
 
 # Keystore files
 *.jks
+gradle.properties
+gradlew
+gradlew.bat
+settings.gradle
+.idea/
+app/proguard-rules.pro
+gradle/wrapper/gradle-wrapper.jar
+gradle/wrapper/gradle-wrapper.properties
