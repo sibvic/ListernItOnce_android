@@ -7,5 +7,15 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="24sp"
-        android:text="@+id/label"/>
+        android:text="@+id/label" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:id="@+id/time" />
+    <ProgressBar
+        android:layout_width="match_parent"
+        android:layout_height="5dip"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:id="@+id/progress"/>
 </LinearLayout>

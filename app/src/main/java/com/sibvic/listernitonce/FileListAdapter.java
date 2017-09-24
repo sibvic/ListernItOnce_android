@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -37,21 +38,26 @@ class FileListAdapter extends ArrayAdapter<FileInfo> {
     }
 
     void updateRow(int position, View rowView) {
-        TextView textView = (TextView) rowView.findViewById(R.id.label);
         FileInfo mediaFile = values.get(position);
+
+        TextView textView = (TextView) rowView.findViewById(R.id.label);
+        textView.setText(mediaFile.getTitle());
+
+        TextView timeView = (TextView) rowView.findViewById(R.id.time);
         long length = mediaFile.getLength();
+        long currentPosition = mediaFile.getCurrentPosition();
         if (length > 0) {
-            long currentPosition = mediaFile.getCurrentPosition();
             int progress = (int) ((currentPosition * 100.0) / length);
-            textView.setText(String.format(Locale.getDefault(), "%1$s (%4$s/%3$s, %2$d%%)",
-                    mediaFile.getTitle(),
+            timeView.setText(String.format(Locale.getDefault(), "%3$s/%2$s, %1$d%%",
                     progress, formatTimeLength(length), formatTimeLength(currentPosition)));
         }
         else {
-            textView.setText(String.format(Locale.getDefault(), "%1$s (%2$s)",
-                    mediaFile.getTitle(),
-                    formatTimeLength(mediaFile.getCurrentPosition())));
+            timeView.setText(formatTimeLength(currentPosition));
         }
+
+        ProgressBar progressBar = (ProgressBar) rowView.findViewById(R.id.progress);
+        progressBar.setMax((int)length);
+        progressBar.setProgress((int)currentPosition);
     }
 
     private String formatTimeLength(long timeInSeconds) {

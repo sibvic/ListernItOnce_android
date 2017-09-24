@@ -33,11 +33,11 @@ class UpdatePlaybackPositionTimerTask extends TimerTask {
             int currentPosition = player.getCurrentPosition() / 1000;
             if (lastPosition != currentPosition && currentPosition != 0) {
                 currentFile.setCurrentPosition(currentPosition);
-            }
-            tickCounter++;
-            if (tickCounter == 10) {
-                tickCounter = 0;
-                FileInformationWriter.saveInformation(currentFile);
+                tickCounter++;
+                if (tickCounter == 10) {
+                    tickCounter = 0;
+                    FileInformationWriter.saveInformation(currentFile);
+                }
             }
         }
     }
