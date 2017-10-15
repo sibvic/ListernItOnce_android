@@ -144,13 +144,13 @@ public class MediaNotificationManager extends BroadcastReceiver {
         if (key == null) {
             return;
         }
-        if(key.getAction() == KeyEvent.ACTION_UP) {
+        if (key.getAction() == KeyEvent.ACTION_UP) {
             int keycode = key.getKeyCode();
-            if(keycode == KeyEvent.KEYCODE_MEDIA_PAUSE) {
+            if (keycode == KeyEvent.KEYCODE_MEDIA_PAUSE) {
                 transportControls.pause();
-            } else if(keycode == KeyEvent.KEYCODE_MEDIA_PLAY) {
+            } else if (keycode == KeyEvent.KEYCODE_MEDIA_PLAY) {
                 transportControls.play();
-            } else if(keycode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
+            } else if (keycode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
                 if (controller.getPlaybackState().getState() == PlaybackStateCompat.STATE_PLAYING) {
                     transportControls.pause();
                 } else if (controller.getPlaybackState().getState() == PlaybackStateCompat.STATE_PAUSED) {

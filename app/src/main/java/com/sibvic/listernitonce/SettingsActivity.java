@@ -134,13 +134,15 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
         @Override
         public void onActivityResult(int requestCode, int resultCode, Intent data) {
-            //get the new value from Intent data
-            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getActivity());
-            SharedPreferences.Editor editor = settings.edit();
-            File selectedFile = new File(data.getData().getPath());
-            String path = selectedFile.getParentFile().getPath();
-            editor.putString("target_path", path);
-            editor.apply();
+            if (data != null) {
+                //get the new value from Intent data
+                SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getActivity());
+                SharedPreferences.Editor editor = settings.edit();
+                File selectedFile = new File(data.getData().getPath());
+                String path = selectedFile.getParentFile().getPath();
+                editor.putString("target_path", path);
+                editor.apply();
+            }
         }
 
         @Override

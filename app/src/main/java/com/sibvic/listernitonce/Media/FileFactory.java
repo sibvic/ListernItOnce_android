@@ -10,6 +10,11 @@ import java.util.ArrayList;
  * Position is stored in the .info file.
  */
 public class FileFactory {
+    /**
+     * Check whether file is a media file.
+     * @param file Input file
+     * @return true if the input file is a media file.
+     */
     private static boolean isMediaFile(File file) {
         try {
             String extension = getFileExtension(file);
@@ -24,6 +29,11 @@ public class FileFactory {
         }
     }
 
+    /**
+     * Get file extension without separator.
+     * @param file Input file
+     * @return Extension without separator.
+     */
     private static String getFileExtension(File file) {
         if (file == null) {
             throw new NullPointerException("file argument was null");
@@ -43,6 +53,11 @@ public class FileFactory {
         }
     }
 
+    /**
+     * Adds files from the specified folder including all subfolders.
+     * @param files Out parameter
+     * @param folder Folder to scan.
+     */
     public static void addFilesFromFolder(ArrayList<MediaFile> files, File folder) {
         File[] filesInFolder = folder.listFiles();
         if (filesInFolder == null) {
@@ -59,6 +74,11 @@ public class FileFactory {
         }
     }
 
+    /**
+     * Get media file from the file
+     * @param file Input file
+     * @return Media file
+     */
     @NonNull
     private static MediaFile getMediaFile(File file) {
         return new MediaFile(file);

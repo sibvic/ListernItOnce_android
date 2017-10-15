@@ -1,13 +1,17 @@
 package com.sibvic.listernitonce;
 
+import android.Manifest;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
@@ -32,20 +36,60 @@ import java.util.List;
 
 public class FilesListActivity extends AppCompatActivity {
     FileListAdapter adapter;
-    MediaBrowserCompat player;
-    ArrayList<FileInfo> listItems;
-    FileInfo currentlyPlaying;
+    MediaBrowserCompat _player;
+    ArrayList<FileInfo> _listItems;
+    FileInfo _currentlyPlaying;
+    final int GET_PERMISSIONS = 0;
+
+    boolean isPermissionGranted(String name) {
+        return ContextCompat.checkSelfPermission(this,name)
+                != PackageManager.PERMISSION_GRANTED;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_files_list);
 
-        player = new MediaBrowserCompat(this,
+        if (!isPermissionGranted(Manifest.permission.READ_EXTERNAL_STORAGE)
+                || !isPermissionGranted(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                || !isPermissionGranted(Manifest.permission.READ_PHONE_STATE)) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]
+                            {
+                                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                    Manifest.permission.READ_PHONE_STATE
+                            },
+                    GET_PERMISSIONS);
+        }
+        else {
+            InitPlayer();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case GET_PERMISSIONS: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    InitPlayer();
+                    _player.connect();
+                }
+                break;
+            }
+        }
+    }
+
+    private void InitPlayer() {
+        _player = new MediaBrowserCompat(this,
                 new ComponentName(this, MediaPlaybackService.class),
                 connectionCallbacks, null);
-        player.subscribe("root", mSubscriptionCallback);
-
+        _player.subscribe("root", mSubscriptionCallback);
         handlePreferences();
     }
 
@@ -68,7 +112,9 @@ public class FilesListActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        player.connect();
+        if (_player != null) {
+            _player.connect();
+        }
     }
 
     @Override
@@ -77,7 +123,9 @@ public class FilesListActivity extends AppCompatActivity {
         if (MediaControllerCompat.getMediaController(FilesListActivity.this) != null) {
             MediaControllerCompat.getMediaController(FilesListActivity.this).unregisterCallback(controllerCallback);
         }
-        player.disconnect();
+        if (_player != null) {
+            _player.disconnect();
+        }
     }
 
     private final MediaBrowserCompat.ConnectionCallback connectionCallbacks =
@@ -85,7 +133,7 @@ public class FilesListActivity extends AppCompatActivity {
                 @Override
                 public void onConnected() {
                     // Get the token for the MediaSession
-                    MediaSessionCompat.Token token = player.getSessionToken();
+                    MediaSessionCompat.Token token = _player.getSessionToken();
 
                     // Create a MediaControllerCompat
                     MediaControllerCompat mediaController;
@@ -202,12 +250,12 @@ public class FilesListActivity extends AppCompatActivity {
             public void onMetadataChanged(MediaMetadataCompat metadata) {
                 updateTitle(metadata);
                 String fileId = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID);
-                currentlyPlaying = findFileById(fileId);
+                _currentlyPlaying = findFileById(fileId);
             }
 
             @Override
             public void onPlaybackStateChanged(PlaybackStateCompat state) {
-                if (currentlyPlaying == null) {
+                if (_currentlyPlaying == null) {
                     MediaMetadataCompat metadata = MediaControllerCompat
                             .getMediaController(FilesListActivity.this).getMetadata();
                     if (metadata != null) {
@@ -220,7 +268,7 @@ public class FilesListActivity extends AppCompatActivity {
         };
 
     private FileInfo findFileById(String fileId) {
-        for (FileInfo file : listItems) {
+        for (FileInfo file : _listItems) {
             if (file.getId().equals(fileId)) {
                 return file;
             }
@@ -229,17 +277,17 @@ public class FilesListActivity extends AppCompatActivity {
     }
 
     private void updateProgress(PlaybackStateCompat state) {
-        if (currentlyPlaying == null) {
+        if (_currentlyPlaying == null) {
             return;
         }
-        currentlyPlaying.setCurrentPosition((int)state.getPosition());
-        int indexOfFile = listItems.indexOf(currentlyPlaying);
+        _currentlyPlaying.setCurrentPosition((int)state.getPosition());
+        int indexOfFile = _listItems.indexOf(_currentlyPlaying);
         if (indexOfFile != -1) {
             ListView listView = (ListView) findViewById(android.R.id.list);
             if (state.getState() == PlaybackStateCompat.STATE_SKIPPING_TO_NEXT
-                    && currentlyPlaying.getLength() >= currentlyPlaying.getCurrentPosition()) {
-                listItems.remove(indexOfFile);
-                adapter.remove(currentlyPlaying);
+                    && _currentlyPlaying.getLength() >= _currentlyPlaying.getCurrentPosition()) {
+                _listItems.remove(indexOfFile);
+                adapter.remove(_currentlyPlaying);
                 adapter.notifyDataSetChanged();
             }
             else {
@@ -256,13 +304,13 @@ public class FilesListActivity extends AppCompatActivity {
         settings.registerOnSharedPreferenceChangeListener(optionsChangeListener);
         String target_folder = settings.getString("target_path", "");
         if (target_folder.equals("")) {
-            handler.postDelayed(showOptionsTask, 100);
+            _handler.postDelayed(_showOptionsTask, 100);
         }
     }
 
-    private Handler handler = new Handler();
+    private Handler _handler = new Handler();
 
-    private Runnable showOptionsTask = new Runnable() {
+    private Runnable _showOptionsTask = new Runnable() {
         public void run() {
             showOptions();
         }
@@ -278,7 +326,7 @@ public class FilesListActivity extends AppCompatActivity {
                 @Override
                 public void onChildrenLoaded(@NonNull String parentId,
                                              @NonNull List<MediaBrowserCompat.MediaItem> children) {
-                    listItems = new ArrayList<>();
+                    _listItems = new ArrayList<>();
 
                     for (MediaBrowserCompat.MediaItem item : children) {
                         MediaDescriptionCompat description = item.getDescription();
@@ -290,10 +338,10 @@ public class FilesListActivity extends AppCompatActivity {
                                 title == null ? "" : title.toString(),
                                 (int) duration,
                                 (int) current_position);
-                        listItems.add(fileInfo);
+                        _listItems.add(fileInfo);
                     }
 
-                    adapter = new FileListAdapter(FilesListActivity.this, listItems);
+                    adapter = new FileListAdapter(FilesListActivity.this, _listItems);
                     adapter.notifyDataSetChanged();
 
                     ListView listView = (ListView)findViewById(android.R.id.list);

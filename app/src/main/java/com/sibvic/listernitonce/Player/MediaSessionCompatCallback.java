@@ -20,42 +20,44 @@ import java.util.ArrayList;
 class MediaSessionCompatCallback extends MediaSessionCompat.Callback {
 
     private IntentFilter intentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
-    private Player player;
-    private ArrayList<MediaFile> files = new ArrayList<>();
-    private String targetFolder = "/";
+    private Player _player;
+    private ArrayList<MediaFile> _files = new ArrayList<>();
+    private String _targetFolder = "/";
 
     MediaSessionCompatCallback(Context context, Player player) {
-        this.context = context;
-        this.player = player;
+        this._context = context;
+        this._player = player;
     }
 
-    ArrayList<MediaFile> getFiles() {
-        return files;
+    ArrayList<MediaFile> get_files() {
+        return _files;
     }
 
     private void refreshFiles() {
-        files.clear();
-        if (!targetFolder.equals("")) {
-            File directory = new File(targetFolder);
-            FileFactory.addFilesFromFolder(files, directory);
+        Log.d("lio", "Refreshing files: " + _targetFolder);
+        _files.clear();
+        if (!_targetFolder.equals("")) {
+            File directory = new File(_targetFolder);
+            FileFactory.addFilesFromFolder(_files, directory);
+            File directory2 = new File(_targetFolder + "/");
+            FileFactory.addFilesFromFolder(_files, directory2);
         }
     }
 
-    private Context context;
+    private Context _context;
     private AudioManager.OnAudioFocusChangeListener afChangeListener = new AudioManager.OnAudioFocusChangeListener() {
         @Override
         public void onAudioFocusChange(int focusChange) {
             Log.d("lio", "");
         }
     };
-//    private BecomingNoisyReceiver myNoisyAudioStreamReceiver = new BecomingNoisyReceiver();
-//    private MediaStyleNotification myPlayerNotification;
 
     @Override
     public void onPlayFromMediaId(String mediaId, Bundle extras) {
+        Log.d("lio", "Play: " + mediaId);
         MediaFile fileToPlay = findFileById(mediaId);
         if (fileToPlay != null) {
-            player.play(fileToPlay);
+            _player.play(fileToPlay);
         }
         else {
             Log.d("lio", "File not found: " + mediaId);
@@ -63,7 +65,7 @@ class MediaSessionCompatCallback extends MediaSessionCompat.Callback {
     }
 
     private MediaFile findFileById(String mediaId) {
-        for (MediaFile file : files) {
+        for (MediaFile file : _files) {
             if (file.getFile().getAbsolutePath().equals(mediaId)) {
                 return file;
             }
@@ -73,39 +75,39 @@ class MediaSessionCompatCallback extends MediaSessionCompat.Callback {
 
     @Override
     public void onPrepareFromMediaId(String mediaId, Bundle extras) {
+        Log.d("lio", "Setting new target folder: " + mediaId);
+        _targetFolder = mediaId;
         super.onPrepareFromMediaId(mediaId, extras);
-        targetFolder = mediaId;
         refreshFiles();
     }
 
     @Override
     public void onPlay() {
-        AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        AudioManager am = (AudioManager) _context.getSystemService(Context.AUDIO_SERVICE);
         int result = am.requestAudioFocus(afChangeListener,
                 AudioManager.STREAM_MUSIC,
                 AudioManager.AUDIOFOCUS_GAIN);
 
         if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-            player.resume();
+            _player.resume();
             //registerReceiver(myNoisyAudioStreamReceiver, intentFilter);
         }
     }
 
     @Override
     public void onStop() {
-        AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        AudioManager am = (AudioManager) _context.getSystemService(Context.AUDIO_SERVICE);
         am.abandonAudioFocus(afChangeListener);
         //unregisterReceiver(myNoisyAudioStreamReceiver);
-        player.stop();
+        _player.stop();
     }
 
     @Override
     public void onPause() {
-        player.pause();
-        //unregisterReceiver(myNoisyAudioStreamReceiver, intentFilter);
+        _player.pause();
     }
 
     void removeFile(int index) {
-        files.remove(index);
+        _files.remove(index);
     }
 }
