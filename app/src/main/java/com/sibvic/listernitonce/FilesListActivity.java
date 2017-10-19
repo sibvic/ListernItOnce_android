@@ -37,7 +37,7 @@ import java.util.List;
 public class FilesListActivity extends AppCompatActivity {
     FileListAdapter adapter;
     MediaBrowserCompat _player;
-    ArrayList<FileInfo> _listItems;
+    FileInfoList _listItems = new FileInfoList();
     FileInfo _currentlyPlaying;
     final int GET_PERMISSIONS = 0;
 
@@ -250,7 +250,7 @@ public class FilesListActivity extends AppCompatActivity {
             public void onMetadataChanged(MediaMetadataCompat metadata) {
                 updateTitle(metadata);
                 String fileId = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID);
-                _currentlyPlaying = findFileById(fileId);
+                _currentlyPlaying = _listItems.findFileById(fileId);
             }
 
             @Override
@@ -266,15 +266,6 @@ public class FilesListActivity extends AppCompatActivity {
                 updateProgress(state);
             }
         };
-
-    private FileInfo findFileById(String fileId) {
-        for (FileInfo file : _listItems) {
-            if (file.getId().equals(fileId)) {
-                return file;
-            }
-        }
-        return null;
-    }
 
     private void updateProgress(PlaybackStateCompat state) {
         if (_currentlyPlaying == null) {
@@ -326,8 +317,6 @@ public class FilesListActivity extends AppCompatActivity {
                 @Override
                 public void onChildrenLoaded(@NonNull String parentId,
                                              @NonNull List<MediaBrowserCompat.MediaItem> children) {
-                    _listItems = new ArrayList<>();
-
                     for (MediaBrowserCompat.MediaItem item : children) {
                         MediaDescriptionCompat description = item.getDescription();
                         Bundle extras = description.getExtras();
@@ -341,7 +330,7 @@ public class FilesListActivity extends AppCompatActivity {
                         _listItems.add(fileInfo);
                     }
 
-                    adapter = new FileListAdapter(FilesListActivity.this, _listItems);
+                    adapter = new FileListAdapter(FilesListActivity.this, _listItems.toArrayList());
                     adapter.notifyDataSetChanged();
 
                     ListView listView = (ListView)findViewById(android.R.id.list);
