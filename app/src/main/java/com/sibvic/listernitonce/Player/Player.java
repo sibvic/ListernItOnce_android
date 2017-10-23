@@ -33,6 +33,9 @@ class Player implements MediaPlayer.OnCompletionListener {
         if (this.mediaFile != null) {
             stop();
         }
+        if (!mediaFile.getFile().exists()) {
+            listener.onCompleted(mediaFile);
+        }
         try {
             mediaPlayer.reset();
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);

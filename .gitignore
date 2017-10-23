@@ -46,3 +46,7 @@ settings.gradle
 app/proguard-rules.pro
 gradle/wrapper/gradle-wrapper.jar
 gradle/wrapper/gradle-wrapper.properties
+.project
+.settings
+.classpath
+Sertificate/*
