@@ -50,3 +50,4 @@ gradle/wrapper/gradle-wrapper.properties
 .settings
 .classpath
 Sertificate/*
+app/release/output.json

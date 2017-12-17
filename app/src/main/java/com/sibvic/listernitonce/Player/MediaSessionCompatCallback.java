@@ -39,8 +39,6 @@ class MediaSessionCompatCallback extends MediaSessionCompat.Callback {
         if (!_targetFolder.equals("")) {
             File directory = new File(_targetFolder);
             FileFactory.addFilesFromFolder(_files, directory);
-            File directory2 = new File(_targetFolder + "/");
-            FileFactory.addFilesFromFolder(_files, directory2);
         }
     }
 
