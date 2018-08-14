@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
+import android.support.v4.app.NotificationCompat.*;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.media.MediaDescriptionCompat;
@@ -263,7 +264,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
 
         int playPauseButtonPosition = 1;
         notificationBuilder
-                .setStyle(new android.support.v7.app.NotificationCompat.MediaStyle()
+                .setStyle(new android.support.v4.media.app.NotificationCompat.MediaStyle()
                         .setShowActionsInCompactView(
                                 new int[]{playPauseButtonPosition})  // show only play/pause in compact view
                         .setMediaSession(sessionToken))

@@ -1,6 +1,8 @@
 package com.sibvic.listernitonce.Media;
 
 import android.media.MediaMetadataRetriever;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 
 import java.io.File;
 import java.util.Locale;
@@ -14,6 +16,7 @@ public class MediaFile {
     private long currentPosition;
     private String title;
 
+    @RequiresApi(api = Build.VERSION_CODES.GINGERBREAD_MR1)
     MediaFile(File file) {
         this.file = file;
 
