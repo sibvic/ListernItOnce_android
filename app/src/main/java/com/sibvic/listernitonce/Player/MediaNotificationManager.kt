@@ -41,7 +41,7 @@ constructor(internal var service: MediaPlaybackService) : BroadcastReceiver() {
     private var playbackState: PlaybackStateCompat? = null
     private var metadata: MediaMetadataCompat? = null
 
-    private val notificationManager: NotificationManagerCompat
+    private var notificationManager: NotificationManagerCompat? = null
 
     private val pauseIntent: PendingIntent
     private val playIntent: PendingIntent
@@ -53,7 +53,7 @@ constructor(internal var service: MediaPlaybackService) : BroadcastReceiver() {
 
     internal var wasPlaying = false
 
-    internal var phoneStateListener: PhoneStateListener = object : PhoneStateListener() {
+    private var phoneStateListener: PhoneStateListener = object : PhoneStateListener() {
         override fun onCallStateChanged(state: Int, incomingNumber: String) {
             if (state == TelephonyManager.CALL_STATE_RINGING) {
                 wasPlaying = playbackState!!.state == PlaybackStateCompat.STATE_PLAYING
@@ -82,7 +82,7 @@ constructor(internal var service: MediaPlaybackService) : BroadcastReceiver() {
             } else {
                 val notification = createNotification()
                 if (notification != null) {
-                    notificationManager.notify(NOTIFICATION_ID, notification)
+                    notificationManager?.notify(NOTIFICATION_ID, notification)
                 }
             }
         }
@@ -91,7 +91,7 @@ constructor(internal var service: MediaPlaybackService) : BroadcastReceiver() {
             metadata = changedMetadata
             val notification = createNotification()
             if (notification != null) {
-                notificationManager.notify(NOTIFICATION_ID, notification)
+                notificationManager?.notify(NOTIFICATION_ID, notification)
             }
         }
 
@@ -121,7 +121,7 @@ constructor(internal var service: MediaPlaybackService) : BroadcastReceiver() {
 
         // Cancel all notifications to handle the case where the Service was killed and
         // restarted by the system.
-        notificationManager.cancelAll()
+        notificationManager?.cancelAll()
     }
 
     /**
@@ -161,7 +161,7 @@ constructor(internal var service: MediaPlaybackService) : BroadcastReceiver() {
             started = false
             controller!!.unregisterCallback(callback)
             try {
-                notificationManager.cancel(NOTIFICATION_ID)
+                notificationManager?.cancel(NOTIFICATION_ID)
                 service.unregisterReceiver(this)
             } catch (ex: IllegalArgumentException) {
                 // ignore if the receiver is not registered.
@@ -235,29 +235,28 @@ constructor(internal var service: MediaPlaybackService) : BroadcastReceiver() {
             return null
         }
 
-        val notificationBuilder = NotificationCompat.Builder(service)
+        //val notificationBuilder = NotificationCompat.Builder(service, "ListenItOnce")
 
-        addPlayPauseAction(notificationBuilder)
+        //addPlayPauseAction(notificationBuilder)
         //addArt(notificationBuilder);
 
-        val description = metadata!!.description
+        //val description = metadata!!.description
 
-        val playPauseButtonPosition = 1
-        notificationBuilder
-                .setStyle(android.support.v4.media.app.NotificationCompat.MediaStyle()
-                        .setShowActionsInCompactView(
-                                *intArrayOf(playPauseButtonPosition))  // show only play/pause in compact view
-                        .setMediaSession(sessionToken))
-                .setColor(notificationColor)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setContentIntent(createContentIntent(description))
-                .setContentTitle(description.title)
-                .setContentText(description.subtitle)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            notificationBuilder.setSmallIcon(R.drawable.ic_info_black_24dp)//TODO: set proper icon
-        } else {
-            notificationBuilder.setSmallIcon(R.drawable.ic_main_icon)
-        }
+        //val playPauseButtonPosition = 1
+//        notificationBuilder
+//                .setStyle(android.support.v4.media.app.NotificationCompat.MediaStyle()
+//                        .setShowActionsInCompactView(playPauseButtonPosition)  // show only play/pause in compact view
+//                        .setMediaSession(sessionToken))
+//                .setColor(notificationColor)
+//                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+//                .setContentIntent(createContentIntent(description))
+//                .setContentTitle(description.title)
+//                .setContentText(description.subtitle)
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//            notificationBuilder.setSmallIcon(R.drawable.ic_info_black_24dp)//TODO: set proper icon
+//        } else {
+//            notificationBuilder.setSmallIcon(R.drawable.ic_main_icon)
+//        }
 
         //        if (controller != null && controller.getExtras() != null) {
         //            String castName = controller.getExtras().getString(MediaPlaybackService.EXTRA_CONNECTED_CAST);
@@ -269,8 +268,8 @@ constructor(internal var service: MediaPlaybackService) : BroadcastReceiver() {
         //                        service.getString(R.string.pause), stopCastIntent);
         //            }
         //        }
-
-        return notificationBuilder.build()
+        return null;
+        //return notificationBuilder.build()
     }
 
     private fun addArt(notificationBuilder: NotificationCompat.Builder) {
