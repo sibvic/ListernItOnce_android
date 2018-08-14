@@ -80,7 +80,7 @@ public class MediaPlaybackService extends MediaBrowserServiceCompat implements P
     @Override
     public void onLoadChildren(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
         ArrayList<MediaBrowserCompat.MediaItem> items = new ArrayList<>();
-        for (MediaFile file : _callback.get_files()) {
+        for (MediaFile file : _callback.getFiles()) {
             items.add(createMediaItem(file));
         }
         result.sendResult(items);
@@ -142,7 +142,7 @@ public class MediaPlaybackService extends MediaBrowserServiceCompat implements P
     }
 
     private int findFileIndex(String fileId) {
-        ArrayList<MediaFile> files = _callback.get_files();
+        ArrayList<MediaFile> files = _callback.getFiles();
         for (int i = 0; i < files.size(); ++i) {
             if (files.get(i).getFile().getAbsolutePath().equals(fileId)) {
                 return i;
@@ -163,7 +163,7 @@ public class MediaPlaybackService extends MediaBrowserServiceCompat implements P
             return;
         }
         _callback.removeFile(indexOfFile);
-        ArrayList<MediaFile> files = _callback.get_files();
+        ArrayList<MediaFile> files = _callback.getFiles();
         if (indexOfFile <= files.size() - 1) {
             MediaFile nextFile = files.get(indexOfFile);
             _callback.onPlayFromMediaId(nextFile.getFile().getAbsolutePath(), null);

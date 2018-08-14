@@ -32,7 +32,7 @@ import android.content.Context.TELEPHONY_SERVICE
  */
 
 class MediaNotificationManager @Throws(RemoteException::class)
-constructor(internal var service: MediaPlaybackService) : BroadcastReceiver() {
+constructor(private var service: MediaPlaybackService) : BroadcastReceiver() {
 
     private var sessionToken: MediaSessionCompat.Token? = null
     private var controller: MediaControllerCompat? = null
