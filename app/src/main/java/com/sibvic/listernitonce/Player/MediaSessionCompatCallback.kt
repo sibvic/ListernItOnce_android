@@ -51,9 +51,11 @@ internal class MediaSessionCompatCallback(private val _context: Context, //priva
     }
 
     override fun onPrepareFromMediaId(mediaId: String?, extras: Bundle?) {
-        Log.d("lio", "Setting new target folder: " + mediaId!!)
-        targetFolder = mediaId
-        super.onPrepareFromMediaId(mediaId, extras)
+        targetFolder = ""
+        if (mediaId != null)
+            targetFolder = mediaId
+        Log.d("lio", "Setting new target folder: " + targetFolder)
+        super.onPrepareFromMediaId(targetFolder, extras)
         refreshFiles()
     }
 

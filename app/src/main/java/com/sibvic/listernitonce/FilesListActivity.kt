@@ -38,7 +38,10 @@ class FilesListActivity : AppCompatActivity() {
         if (key == "target_path") {
             val settings = PreferenceManager
                     .getDefaultSharedPreferences(this@FilesListActivity)
-            val targetFolder = settings.getString("target_path", "")
+            var targetFolder = settings.getString("target_path", "")
+            if (targetFolder == null) {
+                targetFolder = ""
+            }
             MediaControllerCompat.getMediaController(this@FilesListActivity)
                     .transportControls
                     .prepareFromMediaId(targetFolder, null)
@@ -65,9 +68,11 @@ class FilesListActivity : AppCompatActivity() {
             val settings = PreferenceManager
                     .getDefaultSharedPreferences(this@FilesListActivity)
 
-            val target_folder = settings.getString("target_path", "")
+            var targetFolder = settings.getString("target_path", "")
+            if (targetFolder == null)
+                targetFolder = ""
             val transportControls = mediaController.transportControls
-            transportControls?.prepareFromMediaId(target_folder, null)
+            transportControls?.prepareFromMediaId(targetFolder, null)
 
             // Finish building the UI
             buildTransportControls()
